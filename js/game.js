@@ -38,6 +38,7 @@ function preload ()
 
 function create ()
 {
+
 	//background
 	this.add.image(400, 340, 'sky');
 
@@ -58,12 +59,11 @@ function create ()
 	paddle = this.physics.add.image(180, 600, 'paddle');
 	paddle.setCollideWorldBounds(true);
 	paddle.body.immovable = true;
-	paddle.body.setVelocityX(5);
 
 	this.physics.add.collider(ball, topbar);
-	this.physics.add.collider(ball, paddle);
 
-
+	//this.physics.add.overlap(paddle,ball,hitBall,null,this,false);
+	this.physics.add.collider(paddle,ball,hitBall,null,this);
 	//text = this.add.text(9, 9, 'test:x', { font: "20px Arial", fill: "#ffffff", align: "left" });
 
 }
@@ -72,12 +72,12 @@ function update ()
 {
 	if (this.input.activePointer.isDown){
 		//console.log(this.input.x);
-		if (this.input.x <= 180){
-			paddle.body.setVelocityX(-200);
+		if (this.input.x <= paddle.x){
+			paddle.body.setVelocityX(-250);
 			//console.log("left");
 		}	
 		else {
-			paddle.body.setVelocityX(200);
+			paddle.body.setVelocityX(250);
 			//console.log("right");
 		}
 		
@@ -85,4 +85,13 @@ function update ()
 	else{
 		paddle.body.setVelocityX(0);
 	}
+}
+
+function hitBall (paddle,ball){
+	console.log("hitball");
+	console.log(ball.body);
+	//console.log(ball);
+	var x = paddle.x - ball.x;
+	x *= 5;
+	ball.body.setVelocityX(-x);
 }
