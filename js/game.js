@@ -25,10 +25,12 @@ var background;
 var topbar;
 var ball;
 var paddle;
-var text;
+var scoreText;
 var brick;
 
 var brickGroup;
+
+var score;
 function preload ()
 {
 
@@ -49,7 +51,6 @@ function preload ()
 function create ()
 {
 	
-	
 	//background
 	background = this.add.image(window.innerWidth/2, window.innerHeight/2, 'sky');
 	background.setScale(devicePixelRatio*4,devicePixelRatio*2);
@@ -59,30 +60,26 @@ function create ()
 	topbar.setScale(devicePixelRatio*10,devicePixelRatio*2);
 	topbar.body.immovable = true;
 
-
 	//bricks
 	//brickGroup = this.physics.add.staticGroup();
 	brickGroup = this.physics.add.group();
 	console.log(brickGroup);
 	for (var i = 0; i < 5;i++){
 		for (var j = 0; j < 5; j++){
-			//brick = brickGroup.create( window.innerWidth/2 + (i*50*devicePixelRatio - (100*devicePixelRatio)),(devicePixelRatio * 100) +(26*devicePixelRatio * j), 'brick');
+			//					the horizontal spacing between bricks (i*x*dPR), shift should be 2x spacing (2x*dPR)
 			brick = this.physics.add.image(window.innerWidth/2 + (i*50*devicePixelRatio - (100*devicePixelRatio)),(devicePixelRatio * 100) +(26*devicePixelRatio * j), 'brick');
 			brick.setScale(devicePixelRatio * 1.5,devicePixelRatio * 1.5);
-			//brick.body.immovable = true;
 			brickGroup.add(brick);
 		}
 		
 		
 	}
+
+	//this makes the bricks static
 	brickGroup.children.iterate(function (child){
 		child.body.immovable = true;
 	});
 	
-
-
-	//brickGroup.add(brick);
-
 	//ball
 	ball = this.physics.add.image(window.innerWidth/2, window.innerHeight - (95 * devicePixelRatio), 'ball');
 	ball.setBounce(1.0);
@@ -96,13 +93,15 @@ function create ()
 	paddle.body.immovable = true;
 	paddle.setScale(devicePixelRatio,devicePixelRatio);
 
+	//collision detections
 	this.physics.add.collider(ball, topbar);
-
 	this.physics.add.collider(paddle,ball,hitBall,null,this);
-
 	this.physics.add.collider(brickGroup,ball,hitBrick,null,this);
-	//text = this.add.text(9, 9, 'test:x', { font: "20px Arial", fill: "#ffffff", align: "left" });
 
+
+	scoreText = this.add.text(9, 9, 'Score: 0', { font: 20 * devicePixelRatio+"px Arial", fill: "#ffffff", align: "left" });
+
+	score = 0;
 }
 
 function update ()
@@ -134,6 +133,10 @@ function hitBall (paddle,ball){
 }
 
 function hitBrick(ball,brick){
-	//brick.disableBody(true,true);
+	score += 1;
+	scoreText.setText('Score: '+score);
+	console.log(scoreText);
+
 	brick.destroy();
+
 }
