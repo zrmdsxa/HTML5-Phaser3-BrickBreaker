@@ -85,7 +85,7 @@ function create ()
 	ball.setBounce(1.0);
 	ball.setCollideWorldBounds(true);
 	ball.body.setVelocityY(300 * devicePixelRatio);
-	ball.setScale(devicePixelRatio,devicePixelRatio);
+	ball.setScale(devicePixelRatio * 0.8,devicePixelRatio * 0.8);
 
 	//paddle
 	paddle = this.physics.add.image(window.innerWidth/2, window.innerHeight - (40 * devicePixelRatio) , 'paddle');
@@ -107,12 +107,27 @@ function create ()
 function update ()
 {
 	if (this.input.activePointer.isDown){
-		//console.log(this.input.x);
+		console.log(this.input.x - paddle.x);
 		if (this.input.x <= paddle.x){
-			paddle.body.setVelocityX(-250 * devicePixelRatio);
+			if ((this.input.x - paddle.x) > -15){
+				paddle.body.setVelocityX(0);
+				paddle.x = this.input.x;
+				
+			}
+			else {
+				paddle.body.setVelocityX(-250 * devicePixelRatio);
+			}
 			//console.log("left");
 		}	
 		else {
+			if ((this.input.x - paddle.x) < 15){
+				paddle.body.setVelocityX(0);
+				paddle.x = this.input.x;
+				
+			}
+			else {
+				paddle.body.setVelocityX(-250 * devicePixelRatio);
+			}
 			paddle.body.setVelocityX(250 * devicePixelRatio);
 			//console.log("right");
 		}
@@ -135,7 +150,6 @@ function hitBall (paddle,ball){
 function hitBrick(ball,brick){
 	score += 1;
 	scoreText.setText('Score: '+score);
-	console.log(scoreText);
 
 	brick.destroy();
 
