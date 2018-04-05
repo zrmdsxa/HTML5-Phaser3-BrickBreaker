@@ -25,12 +25,22 @@ var background;
 var topbar;
 var leftbar;
 var rightbar;
+var sides;
 var ball;
 var paddle;
 var scoreText;
 
 var brickGroup;
+var remainingBricks;
 var startBall;
+
+var ballStartX;
+var ballStartY;
+
+var paddleMinX;
+var paddleMaxX;
+
+var paddleSpeed = 300;
 
 function preload ()
 {
@@ -60,13 +70,28 @@ function create ()
 	
 
 	//sides
-	leftbar = this.physics.add.image((window.innerWidth/2)-(195 * devicePixelRatio),window.innerHeight/2,'sides');
-	leftbar.setScale(devicePixelRatio*2,devicePixelRatio*10);
-	leftbar.body.immovable = true;
+	sides = this.physics.add.staticGroup();
+	sides.create((window.innerWidth/2)-(195 * devicePixelRatio),window.innerHeight/2,'sides').setScale(devicePixelRatio*2,devicePixelRatio*10).refreshBody();
+	sides.create((window.innerWidth/2)+(195 * devicePixelRatio)-(5*devicePixelRatio),window.innerHeight/2,'sides').setScale(devicePixelRatio*2,devicePixelRatio*10).refreshBody();
 
-	rightbar = this.physics.add.image((window.innerWidth/2)+(195 * devicePixelRatio),window.innerHeight/2,'sides');
-	rightbar.setScale(devicePixelRatio*2,devicePixelRatio*10);
-	rightbar.body.immovable = true;
+	var testSide = this.add.image(0,0,'sides');
+	testSide.setScale(devicePixelRatio*2,devicePixelRatio*10);
+
+	var half = testSide.width * devicePixelRatio;
+	console.log(half);
+	testSide.destroy();
+	//var half = testSide
+	
+	//leftbar = this.physics.add.image((window.innerWidth/2)-(195 * devicePixelRatio),window.innerHeight/2,'sides');
+	//leftbar.setScale(devicePixelRatio*2,devicePixelRatio*10);
+	//leftbar.body.immovable = true;
+
+	//rightbar = this.physics.add.image((window.innerWidth/2)+(195 * devicePixelRatio)-(2*devicePixelRatio),window.innerHeight/2,'sides');
+	//rightbar.setScale(devicePixelRatio*2,devicePixelRatio*10);
+	//rightbar.body.immovable = true;
+
+	//sides.add(leftbar);
+	//sides.add(rightbar);
 
 	//top bar
 	topbar = this.physics.add.image(window.innerWidth/2,20 *devicePixelRatio,'top');
@@ -83,6 +108,7 @@ function create ()
 			brick = this.physics.add.image(window.innerWidth/2 + (i*50*devicePixelRatio - (100*devicePixelRatio)),(devicePixelRatio * 100) +(26*devicePixelRatio * j), 'brick');
 			brick.setScale(devicePixelRatio * 1.5,devicePixelRatio * 1.5);
 			brickGroup.add(brick);
+			remainingBricks++;
 		}
 		
 		
@@ -94,7 +120,9 @@ function create ()
 	});
 	
 	//ball
-	ball = this.physics.add.image(window.innerWidth/2, window.innerHeight - (95 * devicePixelRatio), 'ball');
+	ballStartX = window.innerWidth/2;
+	ballStartY = window.innerHeight - (95 * devicePixelRatio);
+	ball = this.physics.add.image(ballStartX, ballStartY, 'ball');
 	ball.setBounce(1.0);
 	//ball.setCollideWorldBounds(true);
 	//
@@ -106,12 +134,26 @@ function create ()
 	paddle.body.immovable = true;
 	paddle.setScale(devicePixelRatio,devicePixelRatio);
 
+	paddleMinX = (window.innerWidth/2)-(195 * devicePixelRatio) + half + (paddle.width/2 * devicePixelRatio);
+	paddleMaxX = (window.innerWidth/2)+(195 * devicePixelRatio)-(2*devicePixelRatio) - half - (paddle.width/2 * devicePixelRatio);
+
+	console.log(ball.x);
+	console.log(paddle.x);
+	console.log(window.innerWidth/2);
+
 	//collision detections
+	//this.physics.add.collider(paddle, leftbar);
+	//this.physics.add.collider(paddle, rightbar);
+
 	this.physics.add.collider(ball, topbar);
-	this.physics.add.collider(ball, leftbar);
-	this.physics.add.collider(ball, rightbar);
+	//this.physics.add.collider(ball, leftbar);
+	//this.physics.add.collider(ball, rightbar);
+	this.physics.add.collider(ball, sides);
+	this.physics.add.collider(paddle, sides);
+
 	this.physics.add.collider(paddle,ball,hitBall,null,this);
 	this.physics.add.collider(brickGroup,ball,hitBrick,null,this);
+	
 
 
 	scoreText = this.add.text(9, 9, 'Score: 0', { font: 20 * devicePixelRatio+"px Arial", fill: "#ffffff", align: "left" });
@@ -119,11 +161,9 @@ function create ()
 	score = 0;
 	startBall = true;
 
-	ball.body.setVelocityY(300 * devicePixelRatio);
-	console.log(this.input);
-	console.log(game.input);
-	console.log(this.input.onTap);
-	console.log(game.input.onTap);
+	//ball.body.setVelocityY(300 * devicePixelRatio);
+	
+	this.input.on('pointerdown',onPointerDown,this);
 	//this.input.onTap.add(this.onTap,this);
 }
 
@@ -131,9 +171,9 @@ function update ()
 {
 	if (this.input.activePointer.isDown){
 
-		console.log(this.input.x - paddle.x);
+		//console.log(this.input.x - paddle.x);
 		if (this.input.x <= paddle.x){
-			if ((this.input.x - paddle.x) > -15){
+			if ((this.input.x - paddle.x) > -5){
 				paddle.body.setVelocityX(0);
 				paddle.x = this.input.x;
 				
@@ -144,15 +184,14 @@ function update ()
 			//console.log("left");
 		}	
 		else {
-			if ((this.input.x - paddle.x) < 15){
+			if ((this.input.x - paddle.x) < 5){
 				paddle.body.setVelocityX(0);
 				paddle.x = this.input.x;
 				
 			}
 			else {
-				paddle.body.setVelocityX(-250 * devicePixelRatio);
+				paddle.body.setVelocityX(250 * devicePixelRatio);
 			}
-			paddle.body.setVelocityX(250 * devicePixelRatio);
 			//console.log("right");
 		}
 		
@@ -160,6 +199,36 @@ function update ()
 	
 	else{
 		paddle.body.setVelocityX(0);
+	}
+
+
+	if(ball.y >= window.innerHeight){
+		startBall = true;
+
+		ball.body.setVelocityX(0);
+		ball.body.setVelocityY(0);
+
+		paddle.x = ballStartX;
+		ball.x = ballStartX;
+		ball.y = ballStartY;
+
+		score = 0;
+		scoreText.setText('Score: '+score);
+
+		
+	}
+
+	if(paddle.x < paddleMinX){
+		paddle.x = paddleMinX;
+	}
+	else if(paddle.x > paddleMaxX){
+		paddle.x = paddleMaxX;
+	}
+
+	if(startBall){
+		paddle.x = ballStartX;
+		ball.x = ballStartX;
+		ball.y = ballStartY;
 	}
 
 }
@@ -176,11 +245,16 @@ function hitBall (paddle,ball){
 function hitBrick(ball,brick){
 	score += 1;
 	scoreText.setText('Score: '+score);
-
+	remainingBricks--;
 	brick.destroy();
 
 }
 
-function onTap(pointer, doubleTap){
-	console.log("tap");
+function onPointerDown(pointer, gameObjects){
+	console.log("pointerdown");
+	if(startBall){
+		startBall = false;
+
+		ball.body.setVelocityY(300 * devicePixelRatio);
+	}
 }
