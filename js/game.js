@@ -52,6 +52,7 @@ var music;
 var paddlehit;
 var wallhit;
 var brickhit;
+var loseball;
 
 function preload ()
 {
@@ -89,7 +90,9 @@ function preload ()
 	 this.load.audio('paddlehit', 'sound/paddlehit.mp3');
 	 this.load.audio('wallhit', 'sound/wallhit.mp3');
 	 this.load.audio('brickhit', 'sound/brickhit.mp3');
-	 this.load.audio('music', 'sound/music.mp3');
+	 this.load.audio('loseball', 'sound/loseball.mp3');
+	 //this.load.audio('music', 'sound/music.mp3');
+	 this.load.audio('music', 'sound/musicmed.mp3');
 }
 
 
@@ -97,6 +100,7 @@ function preload ()
 function create ()
 {
 	
+
 	//background
 	background = this.add.image(window.innerWidth/2, window.innerHeight/2, 'sky');
 	background.setScale(devicePixelRatio*4,devicePixelRatio*2);
@@ -164,8 +168,8 @@ function create ()
 
 	//collision detections
 
-	this.physics.add.collider(ball, topbar);
-	this.physics.add.collider(ball, sides);
+	this.physics.add.collider(ball, topbar, hitWall);
+	this.physics.add.collider(ball, sides, hitWall);
 	this.physics.add.collider(paddle, sides);
 
 	this.physics.add.collider(paddle,ball,hitBall,null,this);
@@ -187,7 +191,7 @@ function create ()
 	this.input.on('pointerdown',onPointerDown,this);
 
 	music = this.sound.add('music');
-	music.volume = 0.1;
+	music.volume = 0.3;
 	music.loop = true;
 	music.play();
 	console.log(music);
@@ -200,6 +204,12 @@ function create ()
 
 	brickhit = this.sound.add('brickhit');
 	//music.volume = 0.1;
+
+	loseball = this.sound.add('loseball');
+
+	//testing ball going through side walls
+	//this.add.image((window.innerWidth/2)-(sideX * devicePixelRatio)+ (40 * devicePixelRatio),window.innerHeight/2,'ball');
+	//this.add.image((window.innerWidth/2)+(sideX * devicePixelRatio)- (40 * devicePixelRatio),window.innerHeight/2,'ball');
 }
 
 function update ()
@@ -238,6 +248,7 @@ function update ()
 
 
 	if(ball.y >= window.innerHeight){
+		loseball.play();
 		startBall = true;
 
 		ball.body.setVelocityX(0);
@@ -260,11 +271,11 @@ function update ()
 		paddle.x = paddleMaxX;
 	}
 
-	if(ball.x < 0){
-		ball.x = window.innerWidth/4
+	if(ball.x < (window.innerWidth/2)-(sideX * devicePixelRatio) + (40 * devicePixelRatio)){
+		ball.x = (window.innerWidth/2)-(sideX * devicePixelRatio) + (45 * devicePixelRatio);
 	}
-	else if(ball.x > window.innerWidth){
-		ball.x = window.innerWidth/1.333
+	else if(ball.x > (window.innerWidth/2)+(sideX * devicePixelRatio) - (45 * devicePixelRatio)){
+		ball.x = (window.innerWidth/2)+(sideX * devicePixelRatio) - (45 * devicePixelRatio);
 	}
 
 	if(startBall){
@@ -277,6 +288,7 @@ function update ()
 
 function hitBall (paddle,ball){
 	console.log("hitball");
+	paddlehit.play();
 
 	//console.log(ball);
 	var x = paddle.x - ball.x;
@@ -304,12 +316,10 @@ function hitBrick(ball,brick){
 
 }
 
-function hitPaddle(){
-	console.log("hit paddle");
-}
 
 function hitWall(){
 	console.log("hit wall");
+	wallhit.play();
 }
 
 function onPointerDown(pointer, gameObjects){
